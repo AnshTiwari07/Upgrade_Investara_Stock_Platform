@@ -1,4 +1,16 @@
 import React, { useEffect, useState } from 'react';
+import {
+  Container,
+  Typography,
+  TableContainer,
+  Paper,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Chip
+} from '@mui/material';
 import api from '../api';
 
 const Orders = () => {
@@ -17,37 +29,66 @@ const Orders = () => {
   }, []);
 
   return (
-    <section className="container" style={{ padding: '2rem 0' }}>
-      <h1>Orders</h1>
-      <div className="stock-list" style={{ marginTop: '1rem' }}>
-        <table>
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Symbol</th>
-              <th>Type</th>
-              <th>Qty</th>
-              <th>Price</th>
-              <th>Total</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
+    <Container maxWidth="lg">
+      <Typography variant="h3" sx={{ fontWeight: 900, color: 'white', letterSpacing: '-1px', mb: 6 }}>
+        Orders
+      </Typography>
+      
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Symbol</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Qty</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell align="right">Status</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {orders.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 10, color: 'rgba(255,255,255,0.3)' }}>
+                  No orders found.
+                </TableCell>
+              </TableRow>
+            )}
             {orders.map((o) => (
-              <tr key={o._id}>
-                <td>{new Date(o.executedAt || o.createdAt).toLocaleString()}</td>
-                <td>{o.symbol}</td>
-                <td>{o.orderType}</td>
-                <td>{o.quantity}</td>
-                <td>₹ {o.price}</td>
-                <td>₹ {o.totalAmount}</td>
-                <td>{o.status}</td>
-              </tr>
+              <TableRow key={o._id} hover>
+                <TableCell sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.875rem' }}>
+                  {new Date(o.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>{o.symbol}</TableCell>
+                <TableCell>
+                  <Chip 
+                    label={o.orderType} 
+                    size="small" 
+                    color={o.orderType === 'BUY' ? 'success' : 'error'} 
+                    variant="outlined"
+                    sx={{ fontWeight: 700, borderRadius: 1 }}
+                  />
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{o.quantity}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>₹ {o.price}</TableCell>
+                <TableCell align="right">
+                  <Chip 
+                    label={o.status} 
+                    size="small" 
+                    sx={{ 
+                      bgcolor: 'rgba(255,255,255,0.05)', 
+                      color: 'white', 
+                      fontWeight: 600,
+                      borderRadius: 1
+                    }} 
+                  />
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Container>
   );
 };
 

@@ -1,68 +1,76 @@
-import React, { useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Box, Container } from '@mui/material';
-
-// Context
-import { AuthContext } from './context/AuthContext';
-
-// Components
+import React, { useContext, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { ThemeProvider, CssBaseline, Container, Box } from '@mui/material';
+import theme from './theme';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
-
-// Pages
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import StockDetail from './pages/StockDetail';
 import Portfolio from './pages/Portfolio';
 import Orders from './pages/Orders';
+import PaymentMethods from './pages/PaymentMethods';
+import StockDetail from './pages/StockDetail';
+import LandingPage from './pages/LandingPage';
 import NotFound from './pages/NotFound';
+import Chatbot from './components/Chatbot';
+import { AuthContext } from './context/AuthContext';
 
-// Private Route Component
-const PrivateRoute = ({ children }) => {
+const AuthHandler = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
-  
-  if (loading) return <div className="loading">Loading...</div>;
-  
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      const publicPaths = ['/', '/login', '/register'];
+      if (!publicPaths.includes(location.pathname)) {
+        navigate('/login');
+      }
+    }
+  }, [isAuthenticated, loading, navigate, location]);
+
+  return children;
 };
 
-function App() {
+const App = () => {
   return (
-    <Router>
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Navbar />
-        <Container component="main" sx={{ flex: 1, py: 3 }}>
-          <Routes>
-            <Route path="/" element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            } />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/stock/:symbol" element={
-              <PrivateRoute>
-                <StockDetail />
-              </PrivateRoute>
-            } />
-            <Route path="/portfolio" element={
-              <PrivateRoute>
-                <Portfolio />
-              </PrivateRoute>
-            } />
-            <Route path="/orders" element={
-              <PrivateRoute>
-                <Orders />
-              </PrivateRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Container>
-        <Footer />
-      </Box>
-    </Router>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <AuthHandler>
+          <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
+            <Routes>
+              {/* Public Landing Page without standard Layout */}
+              <Route path="/" element={<LandingPage />} />
+              
+              {/* App routes with standard Layout */}
+              <Route path="*" element={
+                <>
+                  <Navbar />
+                  <Container maxWidth="lg" sx={{ flexGrow: 1, py: 6 }} className="page-fade">
+                    <Routes>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/portfolio" element={<Portfolio />} />
+                      <Route path="/orders" element={<Orders />} />
+                      <Route path="/payments" element={<PaymentMethods />} />
+                      <Route path="/stock/:symbol" element={<StockDetail />} />
+                      <Route path="/stocks/:symbol" element={<StockDetail />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Container>
+                  <Footer />
+                  <Chatbot />
+                </>
+              } />
+            </Routes>
+          </Box>
+        </AuthHandler>
+      </BrowserRouter>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;

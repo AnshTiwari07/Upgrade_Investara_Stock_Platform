@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Stock = require('../models/Stock');
 const auth = require('../middleware/auth');
+const financialService = require('../services/FinancialDataService');
 
 // GET /api/stocks - list all stocks
 router.get('/', auth, async (req, res) => {
@@ -11,6 +12,19 @@ router.get('/', auth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// GET /api/stocks/:symbol/history - get historical data
+router.get('/:symbol/history', auth, async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const { range } = req.query; // e.g., 1D, 1W, 1M, 1Y, 5Y
+    const data = await financialService.getHistoricalData(symbol, range);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error fetching history' });
   }
 });
 
@@ -88,7 +102,7 @@ router.post('/seed', async (req, res) => {
       s.change = change;
       s.changePercent = Number(((change / s.previousClose) * 100).toFixed(2));
       // Ensure every seeded stock has a logo; fall back to a generic placeholder
-      if (!s.logo) s.logo = 'zerodha.png';
+      if (!s.logo) s.logo = 'investara.png';
     }
 
     await Stock.bulkWrite(

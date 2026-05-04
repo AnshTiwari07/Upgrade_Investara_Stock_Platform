@@ -4,6 +4,32 @@ const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 
+// @route   POST api/auth/seed-demo
+// @desc    Seed a demo user
+// @access  Public
+router.post('/seed-demo', async (req, res) => {
+  try {
+    let user = await User.findOne({ email: 'demo@investara.com' });
+    if (user) {
+      return res.json({ msg: 'Demo user already exists' });
+    }
+
+    user = new User({
+      name: 'Demo Trader',
+      email: 'demo@investara.com',
+      password: 'password123',
+      phone: '9876543210',
+      panCard: 'ABCDE1234F'
+    });
+
+    await user.save();
+    res.json({ msg: 'Demo user created successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error seeding demo user');
+  }
+});
+
 // @route   POST api/auth/register
 // @desc    Register user
 // @access  Public

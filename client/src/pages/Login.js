@@ -1,7 +1,18 @@
-import React, { useContext, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import React, { useContext, useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Container, Box, Typography, TextField, Button, Link, Alert } from '@mui/material';
+import api from '../api';
+import { 
+  Container, 
+  Box, 
+  Typography, 
+  TextField, 
+  Button, 
+  Paper, 
+  Alert,
+  Stack,
+  Divider
+} from '@mui/material';
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -9,62 +20,114 @@ const Login = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Proactively seed demo user on login page load
+    api.post('/auth/seed-demo').catch(() => {});
+  }, []);
+
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  
   const onSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    setError(null);
     try {
       await login(formData.email, formData.password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
-      setError('Invalid credentials');
+      console.error('Login error:', err);
+      setError(err.response?.data?.msg || 'Invalid credentials');
+    }
+  };
+
+  const handleDemoAccess = async () => {
+    setError(null);
+    try {
+      // 1. Ensure demo user exists
+      await api.post('/auth/seed-demo');
+      // 2. Log in with demo credentials
+      await login('demo@investara.com', 'password123');
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Demo access error:', err);
+      setError('Could not access demo terminal. Please try registering.');
     }
   };
 
   return (
-    <Container maxWidth="xs">
-      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography component="h1" variant="h5">
-          Login
+    <Container maxWidth="sm">
+      <Box sx={{ mt: 10, mb: 4, textAlign: 'center' }}>
+        <Typography variant="h3" sx={{ fontWeight: 900, mb: 2 }}>Welcome Back</Typography>
+        <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+          Enter your credentials to access the Investara Terminal.
         </Typography>
-        <Box component="form" onSubmit={onSubmit} sx={{ mt: 1 }}>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            value={formData.email}
-            onChange={onChange}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            value={formData.password}
-            onChange={onChange}
-          />
-          {error && <Alert severity="error">{error}</Alert>}
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Login
-          </Button>
-          <Link component={RouterLink} to="/register" variant="body2">
-            {"Don't have an account? Register"}
-          </Link>
-        </Box>
       </Box>
+
+      <Paper sx={{ p: 6 }}>
+        <form onSubmit={onSubmit}>
+          <Stack spacing={3}>
+            {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
+            
+            <Box>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700, mb: 1, display: 'block' }}>
+                Email Address
+              </Typography>
+              <TextField 
+                fullWidth 
+                name="email" 
+                placeholder="name@company.com"
+                value={formData.email} 
+                onChange={onChange} 
+                required 
+              />
+            </Box>
+
+            <Box>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700, mb: 1, display: 'block' }}>
+                Password
+              </Typography>
+              <TextField 
+                fullWidth 
+                type="password" 
+                name="password" 
+                placeholder="••••••••"
+                value={formData.password} 
+                onChange={onChange} 
+                required 
+              />
+            </Box>
+
+            <Button 
+              fullWidth 
+              variant="contained" 
+              color="primary" 
+              type="submit" 
+              size="large"
+              sx={{ py: 2, mt: 2, fontWeight: 800 }}
+            >
+              Sign In
+            </Button>
+
+            <Divider sx={{ my: 1, opacity: 0.1 }}>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.3)' }}>OR</Typography>
+            </Divider>
+
+            <Button 
+              fullWidth 
+              variant="outlined" 
+              color="secondary" 
+              size="large"
+              onClick={handleDemoAccess}
+              sx={{ py: 1.5, fontWeight: 700, borderColor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            >
+              Access Demo Terminal
+            </Button>
+          </Stack>
+        </form>
+      </Paper>
+
+      <Typography variant="body2" sx={{ mt: 4, textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
+        Don't have an account? <Link to="/register" style={{ color: '#2962FF', textDecoration: 'none', fontWeight: 700 }}>Create one now</Link>
+      </Typography>
     </Container>
   );
 };
