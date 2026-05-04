@@ -71,10 +71,18 @@ app.get('/api/health', (req, res) => {
 // Initialize WebSocket stream
 marketStream(io);
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/investara-clone')
+// Connect to Database
+const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/investara-clone';
+console.log(`[Database] Attempting to connect to: ${mongoURI.split('@').pop()}`); // Log safely
+
+mongoose.connect(mongoURI)
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('CRITICAL: MongoDB connection failed in production. Ensure MONGO_URI is set in Vercel env variables.');
+    }
+  }); connection error:', err));
 
 // Default route
 app.get('/', (req, res) => {
@@ -83,6 +91,10 @@ app.get('/', (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
