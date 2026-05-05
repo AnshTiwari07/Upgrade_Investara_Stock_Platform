@@ -35,7 +35,13 @@ const Login = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data?.msg || 'Invalid credentials');
+      if (err.code === 'ECONNABORTED' || !err.response) {
+        setError('Network error: Backend terminal is unreachable. Check your connection.');
+      } else if (err.response.status === 503) {
+        setError('Database error: Could not connect to the markets. Please try again in a moment.');
+      } else {
+        setError(err.response?.data?.msg || 'Invalid credentials');
+      }
     }
   };
 
@@ -49,7 +55,11 @@ const Login = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Demo access error:', err);
-      setError('Could not access demo terminal. Please try registering.');
+      if (err.response?.status === 503) {
+        setError('Database connection failed. Ensure MONGO_URI is set in Vercel.');
+      } else {
+        setError('Could not access demo terminal. Please try registering.');
+      }
     }
   };
 

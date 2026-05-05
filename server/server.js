@@ -74,18 +74,37 @@ app.get('/api/health', (req, res) => {
 // Initialize WebSocket stream
 marketStream(io);
 
-// Connect to Database
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/investara-clone';
-console.log(`[Database] Attempting to connect to: ${mongoURI.split('@').pop()}`); // Log safely
+// Connect to Database Logic (Shared for serverless and standalone)
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) return;
 
-mongoose.connect(mongoURI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => {
+  const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/investara-clone';
+  console.log(`[Database] Attempting to connect to: ${mongoURI.split('@').pop()}`);
+
+  try {
+    await mongoose.connect(mongoURI);
+    console.log('MongoDB connected');
+  } catch (err) {
     console.error('MongoDB connection error:', err);
     if (process.env.NODE_ENV === 'production') {
-      console.warn('CRITICAL: MongoDB connection failed in production. Ensure MONGO_URI is set in Vercel env variables.');
+      throw new Error('CRITICAL: MongoDB connection failed in production.');
     }
-  });
+  }
+};
+
+// Database connection middleware for serverless
+app.use(async (req, res, next) => {
+  if (req.path === '/api/health' || req.path === '/metrics') return next();
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(503).json({ 
+      msg: 'Database connection error. Please try again later.',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
 
 // Default route
 app.get('/', (req, res) => {

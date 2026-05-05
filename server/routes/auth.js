@@ -61,10 +61,16 @@ router.post('/register', async (req, res) => {
       }
     };
 
+    const secret = process.env.JWT_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+      console.error('CRITICAL: JWT_SECRET is not defined in production environment.');
+      return res.status(500).json({ msg: 'Server configuration error' });
+    }
+
     // Sign token
     jwt.sign(
       payload,
-      process.env.JWT_SECRET,
+      secret || 'dev_secret_123',
       { expiresIn: '5 days' },
       (err, token) => {
         if (err) throw err;
@@ -103,10 +109,16 @@ router.post('/login', async (req, res) => {
       }
     };
 
+    const secret = process.env.JWT_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+      console.error('CRITICAL: JWT_SECRET is not defined in production environment.');
+      return res.status(500).json({ msg: 'Server configuration error' });
+    }
+
     // Sign token
     jwt.sign(
       payload,
-      process.env.JWT_SECRET,
+      secret || 'dev_secret_123',
       { expiresIn: '5 days' },
       (err, token) => {
         if (err) throw err;
@@ -114,7 +126,7 @@ router.post('/login', async (req, res) => {
       }
     );
   } catch (err) {
-    console.error(err.message);
+    console.error('Login error:', err.message);
     res.status(500).send('Server error');
   }
 });
