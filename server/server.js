@@ -39,7 +39,10 @@ const io = socketIo(server, {
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "*", // Keep it open for Vercel, or set to your specific deployment URL
+  credentials: true
+}));
 
 // Serve uploaded files
 const path = require('path');

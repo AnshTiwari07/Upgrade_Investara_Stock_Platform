@@ -26,11 +26,12 @@ api.interceptors.response.use(
     const { config, response } = error;
     
     // Detailed logging for debugging
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production' || true) { // Temporarily enable for production debugging
       console.error(`API Error: ${config.method.toUpperCase()} ${config.url}`, {
         status: response?.status,
         message: error.message,
-        data: response?.data
+        data: response?.data,
+        fullConfig: config
       });
     }
 
