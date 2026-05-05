@@ -82,7 +82,7 @@ mongoose.connect(mongoURI)
     if (process.env.NODE_ENV === 'production') {
       console.warn('CRITICAL: MongoDB connection failed in production. Ensure MONGO_URI is set in Vercel env variables.');
     }
-  }); connection error:', err));
+  });
 
 // Default route
 app.get('/', (req, res) => {

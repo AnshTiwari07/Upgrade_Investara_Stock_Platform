@@ -26,11 +26,13 @@ api.interceptors.response.use(
     const { config, response } = error;
     
     // Detailed logging for debugging
-    console.error(`API Error: ${config.method.toUpperCase()} ${config.url}`, {
-      status: response?.status,
-      message: error.message,
-      data: response?.data
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(`API Error: ${config.method.toUpperCase()} ${config.url}`, {
+        status: response?.status,
+        message: error.message,
+        data: response?.data
+      });
+    }
 
     // Only retry on network errors or 5xx server errors
     const shouldRetry = !response || (response.status >= 500 && response.status <= 599);
