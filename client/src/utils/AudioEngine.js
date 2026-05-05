@@ -86,4 +86,5 @@ class AudioEngine {
   }
 }
 
-export default new AudioEngine();
+const audioEngine = new AudioEngine();
+export default audioEngine;

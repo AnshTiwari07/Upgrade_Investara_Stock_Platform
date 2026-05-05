@@ -16,9 +16,7 @@ import {
   useScrollTrigger,
   Alert,
   Snackbar,
-  CircularProgress,
-  useMediaQuery,
-  useTheme
+  CircularProgress
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
